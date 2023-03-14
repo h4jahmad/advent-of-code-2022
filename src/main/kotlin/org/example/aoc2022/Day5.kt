@@ -1,8 +1,9 @@
 package org.example.aoc2022
 
+import java.util.*
 
 fun main() {
-
+	println(Day5.runDay5Part1("Day5Input"))
 }
 
 /**
@@ -15,11 +16,14 @@ fun main() {
  * */
 
 object Day5 {
-	data class Stack(val name: Int, val crates: MutableList<String> = mutableListOf())
+	data class SupplyStack(val name: Int, val crates: Stack<Char> = Stack())
+
+	private fun List<SupplyStack>.getIndexByStackName(name: Int): Int = indexOfFirst { it.name == name }
+
 	data class Instruction(
 		val cratesToMove: Int,
-		val srcCrateName: Int,
-		val destCrateName: Int,
+		val from: Int,
+		val to: Int,
 	)
 
 	fun runDay5Part1(fileName: String): String {
@@ -30,50 +34,51 @@ object Day5 {
 		return getCratesOnTop(stacks, instructions)
 	}
 
-	private fun getCratesOnTop(stacks: List<Stack>, instructions: List<Instruction>): String {
+	private fun getCratesOnTop(stacks: List<SupplyStack>, instructions: List<Instruction>): String {
 		val mutStacks = stacks.toMutableList()
 		instructions.forEach { instruction ->
+			val fromStackIndex = mutStacks.getIndexByStackName(instruction.from)
+			val toStackIndex = mutStacks.getIndexByStackName(instruction.to)
 			repeat(instruction.cratesToMove) {
-				mutStacks.
+				mutStacks[toStackIndex].crates.push(mutStacks[fromStackIndex].crates.pop())
 			}
 		}
 
+		return mutStacks.map {
+			it.crates.peek()
+		}.joinToString("")
 	}
 
-	private fun extractStacks(rawInput: String): List<Stack> {
-		val stacks = mutableListOf<Stack>()
-		val lines = rawInput.lines().toMutableList()
-		extractStackNames(lines).forEach { stacks += Stack(it) }
-		lines.removeLast()
-		val cratesList = lines.map {
-			StringBuilder(it)
-				.replace(Regex("   "), EMPTY_TAG)
-				.split(' ')
-				.map { crate -> crate.removeSurrounding("[", "]") }
-		}
-		cratesList.forEach { crates ->
-			var step = 0
-			crates.forEach { crate ->
-				stacks[step].crates += crate
-				step++
+	private fun extractStacks(rawInput: String): List<SupplyStack> {
+		val lines = rawInput.lines()
+		val stacks = extractStackNames(lines.last()).map { SupplyStack(it) }
+		lines.take(lines.lastIndex)
+			.reversed()
+			.forEach { cratesRow ->
+				for ((destStackId, i) in (1..cratesRow.lastIndex step 4).withIndex()) {
+					val crate = cratesRow.elementAt(i)
+					if (crate.isLetter()) {
+						stacks[destStackId].crates.push(crate)
+					}
+				}
 			}
-		}
 		return stacks
 	}
 
-	private fun extractStackNames(rawList: List<String>): List<Int> {
-		val stackNames = Regex("\\d+").findAll(rawList.last()).map { it.value }.toList()
-		return stackNames.map(String::toInt)
-	}
+	private fun extractStackNames(stacks: String): List<Int> = Regex("\\d+")
+		.findAll(stacks)
+		.map { it.value.toInt() }
+		.toList()
 
 	private fun extractInstructions(rawInstructions: String): List<Instruction> =
 		rawInstructions.lines().map { instruction ->
-			val instructionList = Regex("\\d+").findAll(instruction).map { it.value.toInt() }
-			Instruction(
-				instructionList.elementAt(0),
-				instructionList.elementAt(1),
-				instructionList.elementAt(2)
-			)
+			with(Regex("\\d+").findAll(instruction).map { it.value.toInt() }) {
+				Instruction(
+					elementAt(0),
+					elementAt(1),
+					elementAt(2)
+				)
+			}
 		}
 
 
@@ -81,5 +86,4 @@ object Day5 {
 		return ""
 	}
 
-	const val EMPTY_TAG = "EMP"
 }
