@@ -6,47 +6,60 @@ fun main() {
 	println(Day5.runDay5Part1("Day5Input"))
 }
 
-/**
- * List<Stack>: - Stack -> Name: Int
- * 				 			 					 Crates: List<Char>
- *
- * List<Instruction>: - Instruction ->  1- Number of crates to move: Int
- * 							 												2- Name of the source crate: Int
- * 							 												3- Name of the destination crate: Int
- * */
-
 object Day5 {
-	data class SupplyStack(val name: Int, val crates: Stack<Char> = Stack())
-
-	private fun List<SupplyStack>.getIndexByStackName(name: Int): Int = indexOfFirst { it.name == name }
-
-	data class Instruction(
-		val cratesToMove: Int,
-		val from: Int,
-		val to: Int,
-	)
 
 	fun runDay5Part1(fileName: String): String {
 		val rawInput = getFileRawValue(fileName).split("\r\n\r\n")
-		val stacks = extractStacks(rawInput[0])
-		val instructions = extractInstructions(rawInput[1])
 
-		return getCratesOnTop(stacks, instructions)
+		return extractStacks(rawInput[0])
+			.moveCratesOneByOne(extractInstructions(rawInput[1]))
+			.map {
+				it.crates.peek()
+			}.joinToString("")
 	}
 
-	private fun getCratesOnTop(stacks: List<SupplyStack>, instructions: List<Instruction>): String {
-		val mutStacks = stacks.toMutableList()
+	fun runDay5Part2(fileName: String): String {
+		val rawInput = getFileRawValue(fileName).split("\r\n\r\n")
+
+		return extractStacks(rawInput[0])
+			.moveCratesBatch(extractInstructions(rawInput[1]))
+			.map {
+				it.crates.peek()
+			}.joinToString("")
+	}
+
+	private fun List<SupplyStack>.moveCratesOneByOne(
+		instructions: List<Instruction>,
+	): List<SupplyStack> {
+		val list = this.toMutableList()
 		instructions.forEach { instruction ->
-			val fromStackIndex = mutStacks.getIndexByStackName(instruction.from)
-			val toStackIndex = mutStacks.getIndexByStackName(instruction.to)
+			val fromStackIndex = list.getIndexByStack(instruction.from)
+			val toStackIndex = list.getIndexByStack(instruction.to)
 			repeat(instruction.cratesToMove) {
-				mutStacks[toStackIndex].crates.push(mutStacks[fromStackIndex].crates.pop())
+				list[toStackIndex]
+					.crates
+					.push(
+						list[fromStackIndex]
+							.crates
+							.pop()
+					)
 			}
 		}
+		return list
+	}
 
-		return mutStacks.map {
-			it.crates.peek()
-		}.joinToString("")
+	private fun List<SupplyStack>.moveCratesBatch(
+		instructions: List<Instruction>,
+	): List<SupplyStack> {
+		val list = this.toMutableList()
+		instructions.forEach { instruction ->
+			val fromStackIdx =  list.getIndexByStack(instruction.from)
+			val toStackIdx = list.getIndexByStack(instruction.to)
+			// Continue from here.
+
+		}
+
+		return this
 	}
 
 	private fun extractStacks(rawInput: String): List<SupplyStack> {
@@ -81,9 +94,13 @@ object Day5 {
 			}
 		}
 
+	private data class SupplyStack(val name: Int, val crates: Stack<Char> = Stack())
 
-	fun runDay5Part2(fileName: String): String {
-		return ""
-	}
+	private fun List<SupplyStack>.getIndexByStack(name: Int): Int = indexOfFirst { it.name == name }
 
+	data class Instruction(
+		val cratesToMove: Int,
+		val from: Int,
+		val to: Int,
+	)
 }

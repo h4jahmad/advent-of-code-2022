@@ -11,7 +11,7 @@ internal class Day5KtTest {
 	}
 	@Test
 	fun runDay4Part2() {
-		assertEquals(4, Day5.runDay5Part2("Day5InputTest"))
+		assertEquals("MCD", Day5.runDay5Part2("Day5InputTest"))
 	}
 
 }
