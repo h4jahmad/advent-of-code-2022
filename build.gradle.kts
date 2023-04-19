@@ -1,3 +1,4 @@
+import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -22,4 +23,12 @@ tasks.test {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "11"
+}
+
+tasks.withType<Test> {
+	testLogging {
+		setExceptionFormat("full")
+		events.plusAssign(setOf(STARTED, SKIPPED, PASSED, FAILED))
+		showStandardStreams = true
+	}
 }

@@ -3,7 +3,8 @@ package org.example.aoc2022
 import java.util.*
 
 fun main() {
-	println(Day5.runDay5Part1("Day5Input"))
+	println("Day1: ${Day5.runDay5Part1("Day5Input")}")
+	println("Day2: ${Day5.runDay5Part2("Day5Input")}")
 }
 
 object Day5 {
@@ -35,7 +36,7 @@ object Day5 {
 		instructions.forEach { instruction ->
 			val fromStackIndex = list.getIndexByStack(instruction.from)
 			val toStackIndex = list.getIndexByStack(instruction.to)
-			repeat(instruction.cratesToMove) {
+			repeat(instruction.cratesToMoveCount) {
 				list[toStackIndex]
 					.crates
 					.push(
@@ -53,18 +54,29 @@ object Day5 {
 	): List<SupplyStack> {
 		val list = this.toMutableList()
 		instructions.forEach { instruction ->
-			val fromStackIdx =  list.getIndexByStack(instruction.from)
+			val fromStackIdx = list.getIndexByStack(instruction.from)
 			val toStackIdx = list.getIndexByStack(instruction.to)
-			// Continue from here.
+			val cratesToMove = Stack<Char>()
+			repeat(instruction.cratesToMoveCount) {
+				cratesToMove += list[fromStackIdx]
+					.crates
+					.pop()
+			}
+			repeat(cratesToMove.size) {
+				list[toStackIdx]
+					.crates
+					.push(
+						cratesToMove.pop()
+					)
+			}
 
 		}
-
 		return this
 	}
 
 	private fun extractStacks(rawInput: String): List<SupplyStack> {
 		val lines = rawInput.lines()
-		val stacks = extractStackNames(lines.last()).map { SupplyStack(it) }
+		val stacks = extractStackNames(lines.last()).map(::SupplyStack)
 		lines.take(lines.lastIndex)
 			.reversed()
 			.forEach { cratesRow ->
@@ -99,7 +111,7 @@ object Day5 {
 	private fun List<SupplyStack>.getIndexByStack(name: Int): Int = indexOfFirst { it.name == name }
 
 	data class Instruction(
-		val cratesToMove: Int,
+		val cratesToMoveCount: Int,
 		val from: Int,
 		val to: Int,
 	)
