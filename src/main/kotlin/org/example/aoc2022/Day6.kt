@@ -1,17 +1,23 @@
 package org.example.aoc2022
 
 fun main() {
-	println("Day1: ${Day6.runDay6Part1("Day6Input")}")
-	println("Day2: ${Day6.runDay6Part2("Day6Input")}")
+	val input = getFileRawValue("Day6Input")
+	println("Day1: ${Day6.runDay6(input, 4)}")
+	println("Day2: ${Day6.runDay6(input, 14)}")
 }
 
 object Day6 {
 
-	fun runDay6Part1(fileName: String): String {
-		TODO()
-	}
-
-	fun runDay6Part2(fileName: String): String {
-		TODO()
+	fun runDay6(input: String, distinctCount: Int): Int {
+		for (i in 0 until input.length - distinctCount) {
+			val occurrences = mutableMapOf<Char, Int>()
+			for (j in i until i + distinctCount) {
+				occurrences[input[j]] = occurrences[input[j]]?.inc() ?: 1
+			}
+			if (occurrences.all { (_, v) -> v == 1 }) {
+				return i + distinctCount
+			}
+		}
+		return -1
 	}
 }
